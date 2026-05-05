@@ -4,28 +4,28 @@
  * Minecraft AFK Bot - Main Entry Point
  * Bot Username: HimeshMc
  * Server: play.arctixmc.net:25565
- * Version: 1.21+
+ * Version: 1.12.2
  */
 
-const mineflayer = require('mineflayer');
-const config = require('./config');
-const CommandHandler = require('./commands');
-const EventHandler = require('./events');
+var mineflayer = require('mineflayer');
+var config = require('./config');
+var CommandHandler = require('./commands');
+var EventHandler = require('./events');
 
-let bot = null;
-let commandHandler = null;
-let eventHandler = null;
-let reconnectAttempts = 0;
+var bot = null;
+var commandHandler = null;
+var eventHandler = null;
+var reconnectAttempts = 0;
 
 /**
  * Create and start the bot
  */
-async function startBot() {
+function startBot() {
   try {
-    console.log(`\n[${getTimestamp()}] 🚀 Starting Minecraft Bot...`);
-    console.log(`[${getTimestamp()}] 📌 Bot Username: ${config.bot.username}`);
-    console.log(`[${getTimestamp()}] 🌐 Server: ${config.server.host}:${config.server.port}`);
-    console.log(`[${getTimestamp()}] 📦 Version: ${config.server.version}\n`);
+    console.log('\n[' + getTimestamp() + '] 🚀 Starting Minecraft Bot...');
+    console.log('[' + getTimestamp() + '] 📌 Bot Username: ' + config.bot.username);
+    console.log('[' + getTimestamp() + '] 🌐 Server: ' + config.server.host + ':' + config.server.port);
+    console.log('[' + getTimestamp() + '] 📦 Version: ' + config.server.version + '\n');
 
     // Create bot instance
     bot = mineflayer.createBot({
@@ -42,8 +42,8 @@ async function startBot() {
     eventHandler = new EventHandler(bot, commandHandler);
 
     // Handle successful login
-    bot.on('login', () => {
-      console.log(`[${getTimestamp()}] ✅ Successfully logged in to the server!`);
+    bot.on('login', function() {
+      console.log('[' + getTimestamp() + '] ✅ Successfully logged in to the server!');
       reconnectAttempts = 0; // Reset reconnect counter on successful login
     });
 
@@ -51,29 +51,29 @@ async function startBot() {
     eventHandler.registerEvents();
 
     // Handle errors
-    bot.on('error', (err) => {
-      console.error(`[${getTimestamp()}] ❌ Error: ${err.message}`);
+    bot.on('error', function(err) {
+      console.error('[' + getTimestamp() + '] ❌ Error: ' + err.message);
     });
 
     // Handle disconnection
-    bot.on('end', () => {
-      console.log(`[${getTimestamp()}] 🔌 Bot disconnected from server`);
+    bot.on('end', function() {
+      console.log('[' + getTimestamp() + '] 🔌 Bot disconnected from server');
       
       // Attempt to reconnect
       if (config.behavior.autoReconnect && reconnectAttempts < config.behavior.reconnectAttempts) {
         reconnectAttempts++;
-        console.log(`[${getTimestamp()}] 🔄 Reconnecting... (Attempt ${reconnectAttempts}/${config.behavior.reconnectAttempts})`);
-        setTimeout(() => {
+        console.log('[' + getTimestamp() + '] 🔄 Reconnecting... (Attempt ' + reconnectAttempts + '/' + config.behavior.reconnectAttempts + ')');
+        setTimeout(function() {
           startBot();
         }, config.delays.reconnectDelay);
       } else {
-        console.log(`[${getTimestamp()}] ❌ Max reconnection attempts reached. Bot shutting down.`);
+        console.log('[' + getTimestamp() + '] ❌ Max reconnection attempts reached. Bot shutting down.');
         process.exit(0);
       }
     });
 
   } catch (error) {
-    console.error(`[${getTimestamp()}] ❌ Failed to start bot:`, error.message);
+    console.error('[' + getTimestamp() + '] ❌ Failed to start bot:', error.message);
     process.exit(1);
   }
 }
@@ -82,25 +82,23 @@ async function startBot() {
  * Get formatted timestamp
  */
 function getTimestamp() {
-  const now = new Date();
-  return now.toLocaleTimeString('en-US', {
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  });
+  var now = new Date();
+  var h = ('0' + now.getHours()).slice(-2);
+  var m = ('0' + now.getMinutes()).slice(-2);
+  var s = ('0' + now.getSeconds()).slice(-2);
+  return h + ':' + m + ':' + s;
 }
 
 /**
  * Handle graceful shutdown
  */
-process.on('SIGINT', () => {
-  console.log(`\n[${getTimestamp()}] 🛑 Shutting down bot gracefully...`);
+process.on('SIGINT', function() {
+  console.log('\n[' + getTimestamp() + '] 🛑 Shutting down bot gracefully...');
   if (bot) {
     bot.quit();
   }
-  setTimeout(() => {
-    console.log(`[${getTimestamp()}] ✅ Bot has been shut down.`);
+  setTimeout(function() {
+    console.log('[' + getTimestamp() + '] ✅ Bot has been shut down.');
     process.exit(0);
   }, 1000);
 });
@@ -108,8 +106,8 @@ process.on('SIGINT', () => {
 /**
  * Handle uncaught exceptions
  */
-process.on('uncaughtException', (error) => {
-  console.error(`[${getTimestamp()}] 💥 Uncaught Exception:`, error);
+process.on('uncaughtException', function(error) {
+  console.error('[' + getTimestamp() + '] 💥 Uncaught Exception:', error);
   process.exit(1);
 });
 
