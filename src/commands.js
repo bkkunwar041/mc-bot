@@ -3,84 +3,81 @@
  * Handles execution of chat commands
  */
 
-const config = require('./config');
+var config = require('./config');
 
-class CommandHandler {
-  constructor(bot) {
-    this.bot = bot;
-    this.commandQueue = [];
-    this.isProcessing = false;
-  }
+function CommandHandler(bot) {
+  this.bot = bot;
+  this.commandQueue = [];
+  this.isProcessing = false;
+}
 
-  /**
-   * Queue a command for execution
-   * @param {string} command - The command to execute
-   * @param {number} delay - Delay before executing (optional)
-   */
-  async queueCommand(command, delay = 0) {
-    return new Promise((resolve) => {
-      this.commandQueue.push({ command, delay, resolve });
-      this.processQueue();
-    });
-  }
+/**
+ * Queue a command for execution
+ * @param {string} command - The command to execute
+ * @param {number} delay - Delay before executing (optional)
+ */
+CommandHandler.prototype.queueCommand = function(command, delay) {
+  var self = this;
+  delay = delay || 0;
+  
+  return new Promise(function(resolve) {
+    self.commandQueue.push({ command: command, delay: delay, resolve: resolve });
+    self.processQueue();
+  });
+};
 
-  /**
-   * Process queued commands sequentially
-   */
-  async processQueue() {
-    if (this.isProcessing || this.commandQueue.length === 0) return;
+/**
+ * Process queued commands sequentially
+ */
+CommandHandler.prototype.processQueue = function() {
+  var self = this;
+  
+  if (this.isProcessing || this.commandQueue.length === 0) return;
 
-    this.isProcessing = true;
+  this.isProcessing = true;
 
-    while (this.commandQueue.length > 0) {
-      const { command, delay, resolve } = this.commandQueue.shift();
-
-      if (delay > 0) {
-        await this.sleep(delay);
-      }
-
-      try {
-        this.executeCommand(command);
-        await this.sleep(config.delays.betweenCommands);
-        resolve(true);
-      } catch (error) {
-        console.error(`[ERROR] Failed to execute command: ${command}`);
-        console.error(error);
-        resolve(false);
-      }
-    }
-
-    this.isProcessing = false;
-  }
-
-  /**
-   * Execute a single command
-   * @param {string} command - The command to execute
-   */
-  executeCommand(command) {
-    if (!this.bot || !this.bot.chat) {
-      console.error('[ERROR] Bot not ready for chat');
+  var processNext = function() {
+    if (self.commandQueue.length === 0) {
+      self.isProcessing = false;
       return;
     }
 
-    console.log(`[COMMAND] Executing: ${command}`);
-    this.bot.chat(command);
+    var item = self.commandQueue.shift();
+    var command = item.command;
+    var delay = item.delay;
+    var resolve = item.resolve;
+
+    setTimeout(function() {
+      try {
+        self.executeCommand(command);
+        setTimeout(function() {
+          resolve(true);
+          processNext();
+        }, config.delays.betweenCommands);
+      } catch (error) {
+        console.error('[ERROR] Failed to execute command: ' + command);
+        console.error(error);
+        resolve(false);
+        processNext();
+      }
+    }, delay);
+  };
+
+  processNext();
+};
+
+/**
+ * Execute a single command
+ * @param {string} command - The command to execute
+ */
+CommandHandler.prototype.executeCommand = function(command) {
+  if (!this.bot || !this.bot.chat) {
+    console.error('[ERROR] Bot not ready for chat');
+    return;
   }
 
-  /**
-   * Helper: Sleep for specified milliseconds
-   */
-  sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  /**
-   * Clear the command queue
-   */
-  clearQueue() {
-    this.commandQueue = [];
-    this.isProcessing = false;
-  }
-}
+  console.log('[COMMAND] Executing: ' + command);
+  this.bot.chat(command);
+};
 
 module.exports = CommandHandler;
