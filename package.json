@@ -1,0 +1,25 @@
+{
+  "name": "mc-bot",
+  "version": "1.0.0",
+  "description": "Minecraft AFK Bot - HimeshMc",
+  "main": "src/bot.js",
+  "scripts": {
+    "start": "node src/bot.js",
+    "dev": "nodemon src/bot.js"
+  },
+  "keywords": ["minecraft", "bot", "mineflayer", "afk"],
+  "author": "bkkunwar041",
+  "license": "MIT",
+  "dependencies": {
+    "mineflayer": "^4.14.0",
+    "mineflayer-pathfinder": "^2.4.5",
+    "mineflayer-pvp": "^1.2.2",
+    "prismarine-chat": "^1.8.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
